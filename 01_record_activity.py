@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[4]:
 
 
-import logging
 import sys
+from pathlib import Path # We are supposed to use this since Python 3.8
+import logging
 import getpass
 import subprocess
 import re
@@ -19,7 +20,21 @@ from datetime import datetime
 import time
 
 
-# In[25]:
+# In[5]:
+
+
+# 1) Getting password to authenticate to jupyter API :
+# 2) Define ROOT for absolute path (much safer)
+if sys.argv[0].split('/')[-1] == 'ipykernel_launcher.py' :
+    jupyter_password = getpass.getpass('jupyter_password =')
+    R = Path.cwd()
+else :
+    assert len(sys.argv) > 1, 'You must pass the jupyter password as argument of this script !'
+    jupyter_password = sys.argv[1]
+    R = Path(__file__).parent
+
+
+# In[6]:
 
 
 log = logging.getLogger(__name__)
@@ -30,17 +45,6 @@ if 'StreamHandler' not in [ type(h).__name__ for h in log.handlers] :
     ch.setFormatter(logFormatter)
     log.addHandler(ch)
 log.debug('logger start')
-
-
-# In[3]:
-
-
-# Getting password to authenticate to jupyter API :
-if sys.argv[0].split('/')[-1] == 'ipykernel_launcher.py' :
-    jupyter_password = getpass.getpass('jupyter_password =')
-else :
-    assert len(sys.argv) > 1, 'You must pass the jupyter password as argument of this script !'
-    jupyter_password = sys.argv[1]
 
 
 # ---
@@ -87,8 +91,23 @@ else : # Just in case
 ##########################################
 log.info('  ## Signal 2 : Recently saved .ipynb files in /home/enrices/')
 ##########################################
-cmd = "find /home/enrices/ -type f -iname '*.ipynb' -o -iname '*.py' -exec stat --format '%Y' '{}' \; | sort -nr | head -1"
-time_most_recent_python_file = int(subprocess.check_output(cmd, shell=True).decode("utf8").strip('\n'))
+
+# Option 1 : recursively list all .py/.ipynb files and output the "most recent modified timestamp"
+#   Source: https://stackoverflow.com/questions/35878134/format-the-timestamp-using-the-find-command
+#   Adapted to : find /home/enrices/ -type f \( -iname '*.ipynb' -o -iname '*.py' \) -printf '%T@ %P\n'
+#   And the simplified to below :
+#   cmd = "find /home/enrices/ -type f \( -iname '*.ipynb' -o -iname '*.py' \) -printf '%T@\n' | sort -nr | head -1"
+#   %timeit: 6.57 s ± 836 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
+
+# Option 2 : Only list files that have been updated recently
+#   cmd = "find /home/enrices/ -type f \( -iname '*.ipynb' -o -iname '*.py' \) -newermt '1 minute ago'"
+#   %timeit: 6.43 s ± 600 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
+#   cmd = "find /home/enrices/ -type f \( -iname '*.ipynb' -o -iname '*.py' \) -mmin -60"
+#   --> Not faster, in the end
+
+cmd = "find /home/enrices/ -type f \( -iname '*.ipynb' -o -iname '*.py' \) -printf '%T@\n' | sort -nr | head -1"
+raw_output = subprocess.check_output(cmd, shell=True).decode("utf8").strip('\n')
+time_most_recent_python_file = int(float(raw_output))
 log.debug(f'    time_most_recent_python_file: {time_most_recent_python_file}')
 
 
@@ -140,7 +159,7 @@ log.info('# 2. Saving on disk :')
 
 
 l_vals = [int(time.time()), seconds_uptime, cpu_last_1min, cpu_last_5min, cpu_last_15min, time_most_recent_python_file, time_most_recent_kernel_activity]
-with open('./data/activity_signals.csv', 'a') as file :
+with open(R.joinpath('./data/activity_signals.csv'), 'a') as file :
     file.write(','.join([str(v) for v in l_vals]) + '\n')
 log.info('Done. (Success)')
 

@@ -12,8 +12,12 @@ oldest_path () {
 }
 
 # Always stream the python log to stdout, and write to file bia bash + 2>&1. So we can have Uncaught Exceptions as well
-$P $R/01_monitor_activity.py "$jupyter_password" > $(oldest_path $R/log/01_monitor_activity/rotating)  2>&1
-tail ./data/activity_signals.csv -n 10080 > ./data/activity_signals.csv # Keep max 1 week of data
+$P $R/01_record_activity.py "$jupyter_password" > $(oldest_path $R/log/01_record_activity/rotating)  2>&1
+
+# Keep last 10,080 lines (= 1 week of data) of the .csv file (Never do "tail file > file")
+# Source: https://unix.stackexchange.com/questions/310860/how-do-you-keep-only-the-last-n-lines-of-a-log-file
+echo "$(tail -10080 $R/data/activity_signals.csv)" > $R/data/activity_signals.csv
+
 $P $R/02_shutdown_decision.py > $(oldest_path $R/log/02_shutdown_decision/rotating) 2>&1
 
 # Data & Logs look like this :
