@@ -1,15 +1,27 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[7]:
+# In[3]:
 
 
+import sys
+from pathlib import Path 
 import logging
 import pandas as pd
 from datetime import datetime
 
 
-# In[43]:
+# In[4]:
+
+
+# Define ROOT for absolute path (much safer)
+if sys.argv[0].split('/')[-1] == 'ipykernel_launcher.py' :
+    R = Path.cwd()
+else :
+    R = Path(__file__).parent
+
+
+# In[5]:
 
 
 log = logging.getLogger(__name__)
@@ -32,7 +44,7 @@ log.debug('logger start')
 
 # ---
 
-# In[ ]:
+# In[6]:
 
 
 ##########################################
@@ -40,15 +52,17 @@ log.info('# 2. Deciding on Shutdown...')
 ##########################################
 
 
-# In[15]:
+# In[7]:
 
 
 l_cols = ['time_run', 'seconds_uptime', 'cpu_last_1min', 'cpu_last_5min', 'cpu_last_15min', 'time_most_recent_python_file', 'time_most_recent_kernel_activity']
-df = pd.read_csv('./data/activity_signals.csv', names=l_cols, header=None)
+df = pd.read_csv(R.joinpath('./data/activity_signals.csv'), names=l_cols, header=None, na_values=['None'])
 
 
 # In[42]:
 
+
+PERIOD_EXECUTION = 5 # Signals are recorded every 10 minutes.
 
 # We increment a counted "inactivty_points", by a rate which depends on the hour of the day
 # At 60 points, we shutdown the machine
@@ -64,17 +78,17 @@ for _, r in df.sort_values('time_run', ascending=False).iterrows() :
     
     # If active, then break
     if (
-        r['seconds_uptime'] < 120
-        or r['cpu_last_1min'] > .50
+        r['seconds_uptime'] < 2*60
+        or r['time_run']-r['time_most_recent_python_file'] < 2*60
+        or r['time_run']-r['time_most_recent_kernel_activity'] < 2*60
+        # or r['cpu_last_1min'] > .50
         or r['cpu_last_5min'] > .25
-        or r['cpu_last_15min'] > .15
-        or r['time_most_recent_python_file'] > r['time_run'] - 2*60
-        or r['time_most_recent_kernel_activity'] > r['time_run'] - 2*60
+        # or r['cpu_last_15min'] > .20
     ) :
         break
         
     # Else, cumulate :
-    inactivity_points += 1 / L_TIMEOUT_BY_UTC_HOUR[datetime.fromtimestamp(r['time_run']).hour]
+    inactivity_points += PERIOD_EXECUTION * 1 / L_TIMEOUT_BY_UTC_HOUR[datetime.fromtimestamp(r['time_run']).hour]
     
     if inactivity_points > 60 :
         # Safeguard: do not shutdown if the system has been running for less than 1 hour
@@ -85,7 +99,10 @@ for _, r in df.sort_values('time_run', ascending=False).iterrows() :
         else :
             log.info(f'inactivity_points={d_persisted["inactivity_points"]}>= 60., shuting down the machine immediately.')
             # Additionally, persist this log
-            shutil.copyfile('/tmp/current_shutdown_decision.log', './log/02_shutdown_decision/last_shutdown.log')
+            shutil.copyfile(
+                '/tmp/current_shutdown_decision.log', 
+                R.joinpath('./log/02_shutdown_decision/last_shutdown.log') 
+            )
             os.system('shutdown -h now')
 
 log.info(f'total inactivity_points = {inactivity_points} < 60.. Just silently exiting this process.')
