@@ -9,6 +9,7 @@ from pathlib import Path
 import logging
 import pandas as pd
 from datetime import datetime
+import shutil
 
 
 # In[4]:
@@ -95,9 +96,9 @@ for _, r in df.sort_values('time_run', ascending=False).iterrows() :
         with open('/proc/uptime', 'r') as f:
             uptime_seconds = float(f.readline().split()[0])
         if uptime_seconds < 3600. :
-            log.warning(f'inactivity_points={d_persisted["inactivity_points"]}>= 60., but uptime_seconds={uptime_seconds}<3600. Keeping the machine running...')
+            log.warning(f'inactivity_points={inactivity_points}>= 60., but uptime_seconds={uptime_seconds}<3600. Keeping the machine running...')
         else :
-            log.info(f'inactivity_points={d_persisted["inactivity_points"]}>= 60., shuting down the machine immediately.')
+            log.info(f'inactivity_points={inactivity_points}>= 60., shuting down the machine immediately.')
             # Additionally, persist this log
             shutil.copyfile(
                 '/tmp/current_shutdown_decision.log', 
