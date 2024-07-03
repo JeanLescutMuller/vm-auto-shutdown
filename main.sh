@@ -120,11 +120,11 @@ while read line; do
     inactivity_points=$(( inactivity_points + 1/${L_TIMEOUT_BY_UTC_HOUR[$hour_run]} ))
     
     # ------ If counter reach threshold, shutdown the machine
-    if (( $(echo "$inactivity_point > 60" | bc -l) )); then
+    if (( $(echo "$inactivity_points > 60" | bc -l) )); then
         echo '    Shutdown !'
         shutdown -h now
     fi
     
-done < "$ACTIVITY_SIGNALS_PATH" | tac # Read BACKWARD from Bottom to Top !
+done < <(tac "$ACTIVITY_SIGNALS_PATH") # Read BACKWARD from Bottom to Top !
 
 echo "Final inactivity_points is $inactivity_points. Exiting (Success)"
