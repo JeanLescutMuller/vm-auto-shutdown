@@ -30,9 +30,22 @@ This change allows for :
 - Easier Monitoring & Troubleshooting a posteriori (since we can look at all the timeline of signals) 
 - More complex logics which aggregate signals during the last N minutes
   - Example: "Only consider active if Jupyter kernel were active for the last N consecutive minutes..."
-  
-  
-# Initial deployment :
-
+ 
+### Deployment : 
+`./deploy.sh`
 Add in /etc/crontab :
 ```*  *    * * *   root    /home/enrices/auto_shutdown/main.sh **PASSOWRD**```
+ 
+## Version 4
+
+- Implemented in pure Bash
+- Same Exact logic as Version 3
+- Now scheduled by a SystemD service, rather than cron
+
+This change allows for :
+- Easier Monitoring & Troubleshooting a posteriori (since we can look at all the timeline of signals) 
+- More complex logics which aggregate signals during the last N minutes
+  - Example: "Only consider active if Jupyter kernel were active for the last N consecutive minutes..."
+  
+### Deployment :
+`sudo ./deploy.sh **PASSWORD**`
