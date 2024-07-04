@@ -1,5 +1,5 @@
 #!/bin/bash
-
+set -e
 
 #################################################################
 echo '0. Parsing arguments and Initializing constants'
@@ -18,8 +18,7 @@ JUP_URL_API='http://127.0.0.1/jupyter'
 JUP_URL_LOGIN="$JUP_URL_API/login?next=%2F"
 JUP_URL_SESSIONS="$JUP_URL_API/api/sessions"
 JUP_URL_TERMINALS="$JUP_URL_API/api/terminals"
-JUP_COOKIES_PATH="/tmp/jupyter_cookies.txt"
-
+JUP_COOKIES_PATH="$R/data/jupyter_cookies.txt"
 ACTIVITY_SIGNALS_PATH="$R/data/activity_signals.csv"
 
 # Execution Frequency of this script. Should match the scheduler (cron or systemD)
@@ -41,6 +40,8 @@ cpu_last_5min=$(uptime | awk -F', ' '{print $5}')
 
 echo '  tmra_files...'
 # "tmra" = "(Unix) Time of Most Recent Activity"
+# Can ignore the broken pipe proble (sort -> Head -n1 where head break pipe before sort return)
+# Or we could do it in 2 lines
 tmra_files=$(find /home/enrices/ -type f \( -iname '*.ipynb' -o -iname '*.py' \) -printf '%T@\n' | sort -nr | head -1)
 
 echo '  tmra_jupyter...'
