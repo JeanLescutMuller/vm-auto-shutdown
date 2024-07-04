@@ -5,11 +5,10 @@ set -e
 echo '0. Parsing arguments and Initializing constants'
 #################################################################
 
-if [ -z "$1" ]; then
-    echo 'please provide the Jupyter Password as argument !'
+USAGE_HINT="(Usage: JUP_PASSWORD=... ./main.sh.)"
+if [ -z "$JUP_PASSWORD" ]; then
+    echo 'JUP_PASSWORD is missing. '$USAGE_HINT
     exit 1
-else
-    JUP_PASSWORD=$1
 fi
 
 R=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd ) # ROOT
