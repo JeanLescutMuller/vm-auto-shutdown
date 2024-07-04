@@ -39,9 +39,8 @@ cat > /lib/systemd/system/vm-auto-shutdown.timer << EOF
 Description=Run vm-auto-shutdown service every 5 minutes
 
 [Timer]
-OnActiveSec=5min
-OnUnitActiveSec=5min
-Unit=vm-auto-shutdown
+OnCalendar=*:0/5
+Unit=vm-auto-shutdown.service
 
 [Install]
 WantedBy=timers.target
