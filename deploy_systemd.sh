@@ -1,11 +1,11 @@
 #!/bin/bash
 
-if [ -z "$1" ]; then
-    echo 'please provide the Jupyter Password as argument !'
+USAGE_HINT="(Usage: sudo JUP_PASSWORD=... ./deploy_systemd.sh.)"
+if [ -z "$JUP_PASSWORD" ]; then
+    echo 'JUP_PASSWORD is missing. '$USAGE_HINT
     exit 1
-else
-    JUP_PASSWORD=$1
 fi
+
 
 # Install dependencies
 apt-get install -y jq bc
@@ -24,10 +24,11 @@ Description=Checks whether to shutdown the instance.
 [Service]
 Type=oneshot
 PIDFile=/run/vm-auto-shutdown.pid
-ExecStart=/opt/vm-auto-shutdown/main.sh "$JUP_PASSWORD"
+ExecStart=/opt/vm-auto-shutdown/main.sh
+Environment="JUP_PASSWORD=$JUP_PASSWORD"
 User=root
 Group=root
-WorkingDirectory=/root
+WorkingDirectory=/opt/vm-auto-shutdown
 
 [Install]
 WantedBy=multi-user.targetf
@@ -49,3 +50,7 @@ EOF
 # Start the service
 systemctl daemon-reload
 systemctl start vm-auto-shutdown.timer
+
+# Checks
+systemd-analyze verify vm-auto-shutdown.service
+systemd-analyze verify vm-auto-shutdown.timer
