@@ -40,7 +40,7 @@ cat > /lib/systemd/system/vm-auto-shutdown.timer << EOF
 Description=Run vm-auto-shutdown service every 5 minutes
 
 [Timer]
-OnCalendar=*:0/5
+OnCalendar=*:0/2
 Unit=vm-auto-shutdown.service
 
 [Install]
