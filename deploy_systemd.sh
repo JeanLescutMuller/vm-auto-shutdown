@@ -8,7 +8,7 @@ fi
 
 
 # Install dependencies
-apt-get install -y jq bc
+apt-get install -y jq bc # moreutils
 
 # Copy Script
 R=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd ) # ROOT
