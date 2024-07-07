@@ -77,7 +77,7 @@ c['tmra_jup_term']=$(fallback 'tmra_jup_term')
 
 
 #################################################################
-log '## 3. Is Currently Active ? + Compute new inactivity points (counter) ##'
+log '## 3. Compute new inactivity points (counter) ##'
 
 function cond() { (( $(echo $1 | bc -l) )) ; } # Mathematical CONDition (shortcut) -> bool
 function is_jup_active() { # (curr, prv) -> bool
@@ -103,8 +103,9 @@ else
     # Time in Switzerland: 2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 0  1
     # Time in UTC        : 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23
     L_TIMEOUT_BY_UTC_HOUR=(1  1  1  1  1  1  3  6  6  6  6  6  6  6  6  6  6  6  5  4  3  2  2 1)
-    slope="100 / ${L_TIMEOUT_BY_UTC_HOUR[$(date -d @$time_run +%H)]} / 60 / 60"
-    c['points']=$(echo "${p['points']} + $slope * (${c['time_run']} - ${p['time_run']})" | bc -l)
+    h=$(date -d @${c['time_run']} +%H)
+    maths_slope="100 / ${L_TIMEOUT_BY_UTC_HOUR[$h]} / 60 / 60"
+    c['points']=$(echo "${p['points']} + $maths_slope * (${c['time_run']} - ${p['time_run']})" | bc -l)
 fi
 
 #################################################################
