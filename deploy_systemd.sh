@@ -20,6 +20,7 @@ chmod +x /opt/vm-auto-shutdown/main.sh # Should not be necessary
 cat > /lib/systemd/system/vm-auto-shutdown.service << EOF
 [Unit]
 Description=Checks whether to shutdown the instance.
+Wants=jupyterlab.service
 
 [Service]
 Type=oneshot
@@ -30,8 +31,6 @@ User=root
 Group=root
 WorkingDirectory=/opt/vm-auto-shutdown
 
-[Install]
-WantedBy=multi-user.targetf
 EOF
 
 # Setup Service Timer
@@ -40,17 +39,18 @@ cat > /lib/systemd/system/vm-auto-shutdown.timer << EOF
 Description=Run vm-auto-shutdown service every 5 minutes
 
 [Timer]
-OnCalendar=*:0/2
+OnCalendar=*:0/5
 Unit=vm-auto-shutdown.service
 
 [Install]
 WantedBy=timers.target
 EOF
 
-# Start the service
-systemctl daemon-reload
-systemctl start vm-auto-shutdown.timer
-
 # Checks
 systemd-analyze verify vm-auto-shutdown.service
 systemd-analyze verify vm-auto-shutdown.timer
+
+# Start the service
+systemctl daemon-reload
+systemctl enable vm-auto-shutdown.timer
+systemctl start vm-auto-shutdown.timer
