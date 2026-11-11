@@ -1,5 +1,6 @@
-# Auto_Shutdown
-a script to Automatically shut-doen (time-out) a VM after inactivity
+# vm-auto-shutdown
+
+**Automatically shut down a cloud VM (AWS, GCP) after a period of inactivity, so forgotten machines stop costing money. Several versions, in Bash and Python, including one that checks JupyterLab activity.**
 
 ## Version 1
 
